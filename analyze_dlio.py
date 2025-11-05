@@ -86,7 +86,7 @@ def extract_odom_data(bag_path, odom_topic='/dlio/odom_node/odom'):
 def extract_performance_data(log_file_path):
     """
     Parses the dlio_odom_node terminal log file to extract performance metrics
-    using regular expressions (Regex). (No change from original logic)
+    using regular expressions (Regex).
     """
     print(f"Parsing performance metrics from: {log_file_path}")
 
@@ -176,22 +176,30 @@ def visualize_data(df_odom, df_perf):
     plt.tight_layout()
     plt.show()
 
-# --- MAIN EXECUTION ---
-if __name__ == "__main__":
+def main():
     # --- Configuration ---
     # The directory created by ros2 bag record
     BAG_DIR = 'dlio_analysis_bag' 
     # The text file created by shell redirection (e.g., > dlio_output.txt 2>&1)
     LOG_FILE = 'dlio_output.txt' 
+    # List of subdirectories containing the logs
+    SUBDIRECTORIES = ["openmp_max_threads_8", "openmp_max_threads_1"]
     
     # 1. Extract Odometry Data (Uses real rosbag2_py implementation now)
     odom_df = extract_odom_data(BAG_DIR)
     
-    # 2. Extract Performance Data
-    perf_df = extract_performance_data(LOG_FILE)
-    
-    # 3. Visualization
-    if not odom_df.empty and not perf_df.empty:
-        visualize_data(odom_df, perf_df)
-    else:
-        print("\nCould not visualize data. Check the error messages above for bag file or log file issues.")
+    for sub_dir in SUBDIRECTORIES:
+        full_log_path = os.path.join(sub_dir, LOG_FILE)
+        print(f"Analyzing run: {sub_dir}")
+        # 2. Extract Performance Data
+        perf_df = extract_performance_data(full_log_path)
+        
+        # 3. Visualization
+        if not odom_df.empty and not perf_df.empty:
+            visualize_data(odom_df, perf_df)
+        else:
+            print("\nCould not visualize data. Check the error messages above for bag file or log file issues.")
+
+# --- MAIN EXECUTION ---
+if __name__ == "__main__":
+    main()
